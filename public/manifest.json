@@ -1,0 +1,17 @@
+{
+  "name": "KTG Signage",
+  "short_name": "KTG Signage",
+  "description": "Realtime digital signage for churches.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#0B0F19",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
