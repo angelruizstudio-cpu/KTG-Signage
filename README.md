@@ -150,6 +150,7 @@ The kiosk player asks the browser to enter fullscreen, hides the cursor, shows n
 - Schedule `mark_stale_screens_offline()` from Supabase cron or an external job to mark screens offline after 90 seconds without heartbeat.
 - Public media URLs are used for MVP reliability. Move to signed URLs when device registration and pairing codes are implemented.
 - For Azure App Service deployment, see `docs/AZURE_DEPLOYMENT.md`.
+- For Azure Database for PostgreSQL migration, see `docs/AZURE_POSTGRESQL_MIGRATION.md`.
 
 ## Roadmap
 
