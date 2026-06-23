@@ -69,7 +69,7 @@ begin
       url := 'https://api.resend.com/emails',
       headers := jsonb_build_object('Authorization', 'Bearer ' || resend_key, 'Content-Type', 'application/json'),
       body := jsonb_build_object(
-        'from', 'KTG Signage <alerts@ktgsignage.app>',
+        'from', 'KTG Signage <alerts@kingdomtechgroup.org>',
         'to', evt.alert_email,
         'subject', 'Screen offline: ' || evt.screen_name,
         'text', 'Your screen "' || evt.screen_name || '" at ' || evt.org_name || ' went offline.'
