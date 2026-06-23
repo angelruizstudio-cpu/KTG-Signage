@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { assignDeviceToScreen, listSignageDevices, pairSignageDevice, revokeSignageDevice } from "@/lib/services/devices";
 import { listScreens } from "@/lib/services/screens";
 import { formatDate } from "@/lib/utils/format";
@@ -17,6 +18,7 @@ import type { Screen, SignageDevice } from "@/types/signage";
 
 export default function DevicesPage() {
   const { organization } = useCurrentOrganization();
+  const { t } = useLanguage();
   const supabase = createClient();
   const [devices, setDevices] = useState<SignageDevice[]>([]);
   const [screens, setScreens] = useState<Screen[]>([]);
@@ -43,17 +45,17 @@ export default function DevicesPage() {
     void load();
   }, [organization]);
 
-  if (loading) return <LoadingState label="Loading devices" />;
+  if (loading) return <LoadingState label={t("devices.loading")} />;
 
   return (
     <>
       <PageHeader
-        title="Devices"
-        description="Pair TVs without typing long URLs. Open /signage/pair on the TV, enter its code here, and choose the screen."
+        title={t("devices.title")}
+        description={t("devices.description")}
       />
 
       <Card className="mb-6">
-        <h2 className="mb-4 text-lg font-semibold">Pair a TV or browser</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t("devices.pairFormTitle")}</h2>
         <form
           className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]"
           onSubmit={async (event) => {
@@ -65,20 +67,20 @@ export default function DevicesPage() {
               setPairingCode("");
               setScreenId("");
               setDeviceName("");
-              setMessage("Device paired. The TV will open its player automatically.");
+              setMessage(t("devices.pairedMessage"));
               await load();
             } catch (err) {
-              setError(err instanceof Error ? err.message : "Could not pair device.");
+              setError(err instanceof Error ? err.message : t("devices.pairError"));
             }
           }}
         >
           <Input placeholder="KTG-123456" value={pairingCode} onChange={(event) => setPairingCode(event.target.value.toUpperCase())} required />
           <Select value={screenId} onChange={(event) => setScreenId(event.target.value)} required>
-            <option value="">Choose screen</option>
+            <option value="">{t("devices.chooseScreen")}</option>
             {screens.map((screen) => <option key={screen.id} value={screen.id}>{screen.name}</option>)}
           </Select>
-          <Input placeholder="Device name" value={deviceName} onChange={(event) => setDeviceName(event.target.value)} />
-          <Button>Pair</Button>
+          <Input placeholder={t("devices.deviceNamePlaceholder")} value={deviceName} onChange={(event) => setDeviceName(event.target.value)} />
+          <Button>{t("devices.pair")}</Button>
         </form>
         {message ? <p className="mt-3 text-sm text-online">{message}</p> : null}
         {error ? <p className="mt-3 text-sm text-offline">{error}</p> : null}
@@ -89,8 +91,8 @@ export default function DevicesPage() {
           <Card key={device.id}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-semibold">{device.name || "Unnamed device"}</h3>
-                <p className="mt-1 text-xs text-slate-400">Last seen {formatDate(device.last_seen_at)}</p>
+                <h3 className="font-semibold">{device.name || t("devices.unnamedDevice")}</h3>
+                <p className="mt-1 text-xs text-slate-400">{t("devices.lastSeen")} {formatDate(device.last_seen_at)}</p>
               </div>
               <Badge tone={device.status === "paired" ? "success" : device.status === "revoked" ? "danger" : "warning"}>{device.status}</Badge>
             </div>
@@ -102,11 +104,11 @@ export default function DevicesPage() {
                   await load();
                 }}
               >
-                <option value="">No screen</option>
+                <option value="">{t("devices.noScreen")}</option>
                 {screens.map((screen) => <option key={screen.id} value={screen.id}>{screen.name}</option>)}
               </Select>
               <Button variant="danger" onClick={async () => { await revokeSignageDevice(supabase, device.id); await load(); }}>
-                Revoke
+                {t("devices.revoke")}
               </Button>
             </div>
           </Card>

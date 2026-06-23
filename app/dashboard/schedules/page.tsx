@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { listPlaylists } from "@/lib/services/playlists";
 import { listScreens } from "@/lib/services/screens";
 import { deleteSchedule, listSchedules, upsertSchedule } from "@/lib/services/schedules";
@@ -19,6 +20,7 @@ const defaultDays = [0, 1, 2, 3, 4, 5, 6];
 
 export default function SchedulesPage() {
   const { organization } = useCurrentOrganization();
+  const { t } = useLanguage();
   const supabase = createClient();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [screens, setScreens] = useState<Screen[]>([]);
@@ -54,14 +56,14 @@ export default function SchedulesPage() {
     void load();
   }, [organization]);
 
-  if (loading) return <LoadingState label="Loading schedules" />;
+  if (loading) return <LoadingState label={t("schedules.loading")} />;
 
   return (
     <>
-      <PageHeader title="Schedules" description="Schedules override normal playlist assignment. Highest priority wins, then most recent." />
+      <PageHeader title={t("schedules.title")} description={t("schedules.description")} />
       <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
         <Card>
-          <h2 className="mb-4 text-lg font-semibold">Create schedule</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t("schedules.createTitle")}</h2>
           <form
             className="space-y-3"
             onSubmit={async (event) => {
@@ -84,13 +86,13 @@ export default function SchedulesPage() {
               await load();
             }}
           >
-            <Input placeholder="Schedule name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
+            <Input placeholder={t("schedules.namePlaceholder")} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required />
             <Select value={form.screen_id} onChange={(event) => setForm({ ...form, screen_id: event.target.value })}>
-              <option value="">All screens</option>
+              <option value="">{t("schedules.allScreens")}</option>
               {screens.map((screen) => <option key={screen.id} value={screen.id}>{screen.name}</option>)}
             </Select>
             <Select value={form.playlist_id} onChange={(event) => setForm({ ...form, playlist_id: event.target.value })} required>
-              <option value="">Select playlist</option>
+              <option value="">{t("schedules.selectPlaylist")}</option>
               {playlists.map((playlist) => <option key={playlist.id} value={playlist.id}>{playlist.name}</option>)}
             </Select>
             <Input type="datetime-local" value={form.starts_at} onChange={(event) => setForm({ ...form, starts_at: event.target.value })} />
@@ -99,12 +101,12 @@ export default function SchedulesPage() {
               <Input type="time" value={form.start_time} onChange={(event) => setForm({ ...form, start_time: event.target.value })} />
               <Input type="time" value={form.end_time} onChange={(event) => setForm({ ...form, end_time: event.target.value })} />
             </div>
-            <Input type="number" value={form.priority} onChange={(event) => setForm({ ...form, priority: Number(event.target.value) })} placeholder="Priority" />
+            <Input type="number" value={form.priority} onChange={(event) => setForm({ ...form, priority: Number(event.target.value) })} placeholder={t("schedules.priorityPlaceholder")} />
             <Select value={form.is_active ? "active" : "inactive"} onChange={(event) => setForm({ ...form, is_active: event.target.value === "active" })}>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="active">{t("common.active")}</option>
+              <option value="inactive">{t("common.inactive")}</option>
             </Select>
-            <Button>Create schedule</Button>
+            <Button>{t("schedules.submit")}</Button>
           </form>
         </Card>
         <div className="space-y-3">
@@ -113,9 +115,9 @@ export default function SchedulesPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className="font-semibold">{schedule.name}</h3>
-                  <p className="mt-1 text-sm text-slate-400">Priority {schedule.priority}</p>
+                  <p className="mt-1 text-sm text-slate-400">{t("schedules.priorityLabel", { priority: schedule.priority })}</p>
                 </div>
-                <Badge tone={schedule.is_active ? "success" : "neutral"}>{schedule.is_active ? "Active" : "Inactive"}</Badge>
+                <Badge tone={schedule.is_active ? "success" : "neutral"}>{schedule.is_active ? t("common.active") : t("common.inactive")}</Badge>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button
@@ -125,10 +127,10 @@ export default function SchedulesPage() {
                     await load();
                   }}
                 >
-                  {schedule.is_active ? "Deactivate" : "Activate"}
+                  {schedule.is_active ? t("schedules.deactivate") : t("schedules.activate")}
                 </Button>
                 <Button variant="ghost" onClick={async () => { await deleteSchedule(supabase, schedule.id); await load(); }}>
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </div>
             </Card>

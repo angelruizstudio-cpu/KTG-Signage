@@ -2,6 +2,7 @@
 
 import { Button } from "./Button";
 import { Modal } from "./Modal";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -12,15 +13,16 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({ open, title, message, onCancel, onConfirm }: ConfirmDialogProps) {
+  const { t } = useLanguage();
   return (
     <Modal open={open} title={title} onClose={onCancel}>
       <p className="mb-5 text-sm text-slate-300">{message}</p>
       <div className="flex justify-end gap-3">
         <Button variant="ghost" onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button variant="danger" onClick={onConfirm}>
-          Confirm
+          {t("common.confirm")}
         </Button>
       </div>
     </Modal>

@@ -6,12 +6,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { createClient } from "@/lib/supabase/client";
 import { getSupabaseConfigError, isSupabaseConfigured } from "@/lib/supabase/env";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,18 +42,33 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-deep p-6">
       <Card className="w-full max-w-md">
-        <h1 className="text-2xl font-semibold">Login</h1>
-        <p className="mt-2 text-sm text-slate-400">Manage screens, playlists, media, and schedules.</p>
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold">{t("login.title")}</h1>
+          <LanguageSwitcher />
+        </div>
+        <p className="mt-2 text-sm text-slate-400">{t("login.subtitle")}</p>
         <form className="mt-6 space-y-4" onSubmit={submit}>
-          <Input type="email" placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-          <Input type="password" placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+          <Input
+            type="email"
+            placeholder={t("login.emailPlaceholder")}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+          <Input
+            type="password"
+            placeholder={t("login.passwordPlaceholder")}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
           {error ? <p className="text-sm text-offline">{error}</p> : null}
           <Button className="w-full" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+            {loading ? t("login.loggingIn") : t("login.submit")}
           </Button>
         </form>
         <p className="mt-5 text-sm text-slate-400">
-          New here? <Link className="text-cyan" href="/register">Create an account</Link>
+          {t("login.noAccount")} <Link className="text-cyan" href="/register">{t("login.createAccount")}</Link>
         </p>
       </Card>
     </main>

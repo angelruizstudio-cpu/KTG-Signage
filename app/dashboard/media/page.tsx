@@ -14,11 +14,13 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { deleteMediaAsset, listMediaAssets, updateMediaAsset } from "@/lib/services/media";
 import type { MediaAsset } from "@/types/signage";
 
 export default function MediaPage() {
   const { organization } = useCurrentOrganization();
+  const { t } = useLanguage();
   const supabase = createClient();
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,24 +40,24 @@ export default function MediaPage() {
     void load();
   }, [organization]);
 
-  if (loading) return <LoadingState label="Loading media" />;
+  if (loading) return <LoadingState label={t("media.loading")} />;
 
   return (
     <>
       <PageHeader
-        title="Media Library"
-        description="Images and videos available for church announcements, welcome screens, and loops."
+        title={t("media.title")}
+        description={t("media.description")}
         action={
           <Link href="/dashboard/media/upload">
             <Button>
               <Upload className="h-4 w-4" />
-              Upload media
+              {t("media.uploadMedia")}
             </Button>
           </Link>
         }
       />
       {assets.length === 0 ? (
-        <EmptyState title="No media assets" description="Upload your first image or video to begin building a playlist." />
+        <EmptyState title={t("media.emptyTitle")} description={t("media.emptyDescription")} />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {assets.map((asset) => (
@@ -78,8 +80,8 @@ export default function MediaPage() {
       )}
       <ConfirmDialog
         open={Boolean(deleteTarget)}
-        title="Delete media asset?"
-        message="This removes the asset from storage and playlists that reference it."
+        title={t("media.deleteTitle")}
+        message={t("media.deleteMessage")}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={async () => {
           if (!deleteTarget) return;
@@ -88,12 +90,12 @@ export default function MediaPage() {
           await load();
         }}
       />
-      <Modal open={Boolean(editTarget)} title="Edit media" onClose={() => setEditTarget(null)}>
+      <Modal open={Boolean(editTarget)} title={t("media.editTitle")} onClose={() => setEditTarget(null)}>
         <div className="space-y-4">
-          <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} placeholder="Title" />
-          <Textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} placeholder="Description" />
+          <Input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} placeholder={t("media.titlePlaceholder")} />
+          <Textarea value={editDescription} onChange={(event) => setEditDescription(event.target.value)} placeholder={t("media.descriptionPlaceholder")} />
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setEditTarget(null)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setEditTarget(null)}>{t("common.cancel")}</Button>
             <Button
               onClick={async () => {
                 if (!editTarget) return;
@@ -102,7 +104,7 @@ export default function MediaPage() {
                 await load();
               }}
             >
-              Save
+              {t("common.save")}
             </Button>
           </div>
         </div>

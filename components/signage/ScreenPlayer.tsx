@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Wifi, WifiOff } from "lucide-react";
 import { useScreenHeartbeat } from "@/lib/hooks/useScreenHeartbeat";
 import { useScreenRealtime } from "@/lib/hooks/useScreenRealtime";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import type { ScreenPayloadItem } from "@/types/signage";
 import { cn } from "@/lib/utils/cn";
 
@@ -12,6 +13,7 @@ function getDuration(item: ScreenPayloadItem) {
 }
 
 export function ScreenPlayer({ screenKey }: { screenKey: string }) {
+  const { t } = useLanguage();
   useScreenHeartbeat(screenKey);
   const { payload, loading, error, usingStoredPayload, connectionState } = useScreenRealtime(screenKey);
   const [index, setIndex] = useState(0);
@@ -56,7 +58,7 @@ export function ScreenPlayer({ screenKey }: { screenKey: string }) {
       <main className="grid min-h-screen place-items-center bg-black text-white">
         <div className="text-center">
           <div className="mx-auto mb-4 h-3 w-3 animate-ping rounded-full bg-cyan" />
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Loading display</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">{t("screenPlayer.loadingDisplay")}</p>
         </div>
       </main>
     );
@@ -66,8 +68,8 @@ export function ScreenPlayer({ screenKey }: { screenKey: string }) {
     return (
       <main className="grid min-h-screen place-items-center bg-black p-8 text-white">
         <div className="max-w-xl text-center">
-          <h1 className="text-4xl font-semibold">Screen not found</h1>
-          <p className="mt-4 text-slate-400">{error ?? "Check the player URL or regenerate the screen key."}</p>
+          <h1 className="text-4xl font-semibold">{t("screenPlayer.notFoundTitle")}</h1>
+          <p className="mt-4 text-slate-400">{error ?? t("screenPlayer.notFoundHint")}</p>
         </div>
       </main>
     );
@@ -85,15 +87,15 @@ export function ScreenPlayer({ screenKey }: { screenKey: string }) {
     >
       <div className="absolute right-4 top-4 z-20 flex items-center gap-2 rounded-md bg-black/50 px-3 py-2 text-xs text-white backdrop-blur">
         {connectionState === "connected" ? <Wifi className="h-4 w-4 text-online" /> : <WifiOff className="h-4 w-4 text-warning" />}
-        {usingStoredPayload ? "Offline Mode" : connectionState}
+        {usingStoredPayload ? t("screenPlayer.offlineMode") : connectionState}
       </div>
 
       {items.length === 0 || !current ? (
         <section className="grid min-h-screen place-items-center p-10 text-center">
           <div>
             <p className="text-sm uppercase tracking-[0.35em] text-cyan">KTG Signage</p>
-            <h1 className="mt-4 text-5xl font-semibold">No content assigned</h1>
-            <p className="mt-4 text-lg text-slate-400">Assign an active playlist to {payload.screen.name}.</p>
+            <h1 className="mt-4 text-5xl font-semibold">{t("screenPlayer.noContentTitle")}</h1>
+            <p className="mt-4 text-lg text-slate-400">{t("screenPlayer.noContentSubtitle", { name: payload.screen.name })}</p>
           </div>
         </section>
       ) : (

@@ -9,12 +9,14 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { createScreen } from "@/lib/services/screens";
 import type { ScreenOrientation } from "@/types/signage";
 
 export default function NewScreenPage() {
   const router = useRouter();
   const { organization } = useCurrentOrganization();
+  const { t } = useLanguage();
   const supabase = createClient();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
@@ -28,23 +30,23 @@ export default function NewScreenPage() {
       const screen = await createScreen(supabase, organization.id, { name, location, orientation });
       router.push(`/dashboard/screens/${screen.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create screen.");
+      setError(err instanceof Error ? err.message : t("screenNew.error"));
     }
   }
 
   return (
     <>
-      <PageHeader title="Create screen" description="Each screen gets a secure unique URL for TVs, Fire Sticks, mini PCs, tablets, and browsers." />
+      <PageHeader title={t("screenNew.title")} description={t("screenNew.description")} />
       <Card className="max-w-2xl">
         <form className="space-y-4" onSubmit={submit}>
-          <Input placeholder="Screen name" value={name} onChange={(event) => setName(event.target.value)} required />
-          <Input placeholder="Location" value={location} onChange={(event) => setLocation(event.target.value)} />
+          <Input placeholder={t("screenNew.namePlaceholder")} value={name} onChange={(event) => setName(event.target.value)} required />
+          <Input placeholder={t("screenNew.locationPlaceholder")} value={location} onChange={(event) => setLocation(event.target.value)} />
           <Select value={orientation} onChange={(event) => setOrientation(event.target.value as ScreenOrientation)}>
-            <option value="landscape">Landscape</option>
-            <option value="portrait">Portrait</option>
+            <option value="landscape">{t("screenNew.landscape")}</option>
+            <option value="portrait">{t("screenNew.portrait")}</option>
           </Select>
           {error ? <p className="text-sm text-offline">{error}</p> : null}
-          <Button>Create screen</Button>
+          <Button>{t("screenNew.submit")}</Button>
         </form>
       </Card>
     </>

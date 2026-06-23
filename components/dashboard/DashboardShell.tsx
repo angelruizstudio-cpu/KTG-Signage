@@ -6,15 +6,17 @@ import { Topbar } from "./Topbar";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { OrganizationSetup } from "./OrganizationSetup";
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { organization, loading, error, reload } = useCurrentOrganization();
+  const { t } = useLanguage();
 
   if (loading) {
     return (
       <main className="min-h-screen bg-deep">
-        <LoadingState label="Loading workspace" />
+        <LoadingState label={t("shell.loadingWorkspace")} />
       </main>
     );
   }
@@ -22,7 +24,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   if (error) {
     return (
       <main className="min-h-screen bg-deep p-6">
-        <EmptyState title="Organization setup needed" description={error} />
+        <EmptyState title={t("shell.setupNeededTitle")} description={error} />
       </main>
     );
   }
