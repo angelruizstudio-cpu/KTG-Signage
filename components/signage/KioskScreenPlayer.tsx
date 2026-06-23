@@ -5,6 +5,7 @@ import { Maximize, Wifi, WifiOff, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useDeviceAssignment } from "@/lib/hooks/useDeviceAssignment";
 import { useDeviceHeartbeat } from "@/lib/hooks/useDeviceHeartbeat";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import type { ScreenPayloadItem } from "@/types/signage";
 import { cn } from "@/lib/utils/cn";
 
@@ -13,6 +14,7 @@ function durationMs(item: ScreenPayloadItem) {
 }
 
 export function KioskScreenPlayer() {
+  const { t } = useLanguage();
   const { assignment, deviceKey, loading, error } = useDeviceAssignment();
   useDeviceHeartbeat(deviceKey);
   const [index, setIndex] = useState(0);
@@ -70,15 +72,15 @@ export function KioskScreenPlayer() {
   }, [current, items.length]);
 
   if (loading) {
-    return <main className="grid min-h-screen place-items-center bg-black text-white">Loading device...</main>;
+    return <main className="grid min-h-screen place-items-center bg-black text-white">{t("kioskPlayer.loadingDevice")}</main>;
   }
 
   if (!deviceKey || assignment?.device?.status !== "paired") {
     return (
       <main className="grid min-h-screen place-items-center bg-black p-8 text-center text-white">
         <div>
-          <h1 className="text-4xl font-semibold">Device is not paired</h1>
-          <p className="mt-4 text-slate-400">Open /signage/pair on this device to get a pairing code.</p>
+          <h1 className="text-4xl font-semibold">{t("kioskPlayer.notPairedTitle")}</h1>
+          <p className="mt-4 text-slate-400">{t("kioskPlayer.notPairedSubtitle")}</p>
         </div>
       </main>
     );
@@ -88,7 +90,7 @@ export function KioskScreenPlayer() {
     <main className={cn("relative min-h-screen overflow-hidden bg-black text-white", kioskActive && !showExit && "hide-cursor")}>
       <div className="absolute right-4 top-4 z-30 flex items-center gap-2 rounded-md bg-black/50 px-3 py-2 text-xs backdrop-blur">
         {error ? <WifiOff className="h-4 w-4 text-warning" /> : <Wifi className="h-4 w-4 text-online" />}
-        {error ? "Reconnecting" : "Device paired"}
+        {error ? t("kioskPlayer.reconnecting") : t("kioskPlayer.devicePaired")}
       </div>
 
       {!kioskActive || showExit ? (
@@ -96,12 +98,12 @@ export function KioskScreenPlayer() {
           {!kioskActive ? (
             <Button onClick={enterKiosk}>
               <Maximize className="h-4 w-4" />
-              Enter kiosk
+              {t("kioskPlayer.enterKiosk")}
             </Button>
           ) : (
             <Button variant="secondary" onClick={exitKiosk}>
               <X className="h-4 w-4" />
-              Cancel kiosk
+              {t("kioskPlayer.cancelKiosk")}
             </Button>
           )}
         </div>
@@ -111,8 +113,8 @@ export function KioskScreenPlayer() {
         <section className="grid min-h-screen place-items-center p-10 text-center">
           <div>
             <p className="text-sm uppercase tracking-[0.35em] text-cyan">KTG Signage</p>
-            <h1 className="mt-4 text-5xl font-semibold">No content assigned</h1>
-            <p className="mt-4 text-lg text-slate-400">Assign a playlist to {assignment.screen?.name ?? "this screen"}.</p>
+            <h1 className="mt-4 text-5xl font-semibold">{t("kioskPlayer.noContentTitle")}</h1>
+            <p className="mt-4 text-lg text-slate-400">{t("kioskPlayer.noContentSubtitle", { name: assignment.screen?.name ?? t("kioskPlayer.thisScreen") })}</p>
           </div>
         </section>
       ) : (

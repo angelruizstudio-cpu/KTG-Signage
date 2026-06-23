@@ -5,12 +5,15 @@ import { Building2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { createClient } from "@/lib/supabase/client";
 import { ensureInitialOrganization } from "@/lib/services/organizations";
 import { getErrorMessage } from "@/lib/utils/errors";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 export function OrganizationSetup({ onCreated }: { onCreated: () => void }) {
   const supabase = createClient();
+  const { t } = useLanguage();
   const [fullName, setFullName] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +31,7 @@ export function OrganizationSetup({ onCreated }: { onCreated: () => void }) {
       } = await supabase.auth.getUser();
 
       if (userError) throw userError;
-      if (!user) throw new Error("You must be logged in to create an organization.");
+      if (!user) throw new Error(t("orgSetup.loginRequiredError"));
 
       await ensureInitialOrganization(
         supabase,
@@ -39,7 +42,7 @@ export function OrganizationSetup({ onCreated }: { onCreated: () => void }) {
 
       onCreated();
     } catch (err) {
-      setError(getErrorMessage(err, "Could not create organization."));
+      setError(getErrorMessage(err, t("orgSetup.genericError")));
     } finally {
       setLoading(false);
     }
@@ -48,22 +51,25 @@ export function OrganizationSetup({ onCreated }: { onCreated: () => void }) {
   return (
     <main className="grid min-h-screen place-items-center bg-deep p-6">
       <Card className="w-full max-w-xl">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-md bg-brand">
-            <Building2 className="h-5 w-5" />
-          </span>
-          <div>
-            <h1 className="text-2xl font-semibold">Create your organization</h1>
-            <p className="mt-1 text-sm text-slate-400">Your account exists, but it is not connected to an organization yet.</p>
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center rounded-md bg-brand">
+              <Building2 className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-2xl font-semibold">{t("orgSetup.title")}</h1>
+              <p className="mt-1 text-sm text-slate-400">{t("orgSetup.subtitle")}</p>
+            </div>
           </div>
+          <LanguageSwitcher />
         </div>
         <form className="space-y-4" onSubmit={submit}>
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-300">Your full name</span>
+            <span className="text-sm font-medium text-slate-300">{t("orgSetup.fullNameLabel")}</span>
             <Input placeholder="Angel M Ruiz" value={fullName} onChange={(event) => setFullName(event.target.value)} />
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-slate-300">Organization name</span>
+            <span className="text-sm font-medium text-slate-300">{t("orgSetup.orgNameLabel")}</span>
           <Input
               placeholder="ICP East Chicago"
             value={organizationName}
@@ -73,7 +79,7 @@ export function OrganizationSetup({ onCreated }: { onCreated: () => void }) {
           </label>
           {error ? <p className="text-sm text-offline">{error}</p> : null}
           <Button className="w-full" disabled={loading}>
-            {loading ? "Creating workspace..." : "Create organization"}
+            {loading ? t("orgSetup.creating") : t("orgSetup.submit")}
           </Button>
         </form>
       </Card>

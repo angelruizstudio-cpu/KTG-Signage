@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { DashboardStats, MediaAsset, Screen } from "@/types/signage";
 import { formatDate } from "@/lib/utils/format";
 
 export default function DashboardPage() {
   const { organization } = useCurrentOrganization();
+  const { t } = useLanguage();
   const supabase = createClient();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [screens, setScreens] = useState<Screen[]>([]);
@@ -48,18 +50,18 @@ export default function DashboardPage() {
     void load();
   }, [organization, supabase]);
 
-  if (loading || !stats) return <LoadingState label="Loading dashboard" />;
+  if (loading || !stats) return <LoadingState label={t("dashboardHome.loading")} />;
 
   return (
     <>
       <PageHeader
-        title="Dashboard"
-        description="A realtime control room for screens, playlists, schedules, and media loops."
+        title={t("dashboardHome.title")}
+        description={t("dashboardHome.description")}
         action={
           <Link href="/dashboard/media/upload">
             <Button>
               <Upload className="h-4 w-4" />
-              Upload media
+              {t("dashboardHome.uploadMedia")}
             </Button>
           </Link>
         }
@@ -67,12 +69,12 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
         {[
-          ["Total screens", stats.totalScreens],
-          ["Online", stats.onlineScreens],
-          ["Offline", stats.offlineScreens],
-          ["Media assets", stats.totalMediaAssets],
-          ["Playlists", stats.totalPlaylists],
-          ["Active schedules", stats.activeSchedules]
+          [t("dashboardHome.totalScreens"), stats.totalScreens],
+          [t("dashboardHome.online"), stats.onlineScreens],
+          [t("dashboardHome.offline"), stats.offlineScreens],
+          [t("dashboardHome.mediaAssets"), stats.totalMediaAssets],
+          [t("dashboardHome.playlists"), stats.totalPlaylists],
+          [t("dashboardHome.activeSchedules"), stats.activeSchedules]
         ].map(([label, value]) => (
           <Card key={label}>
             <p className="text-sm text-slate-400">{label}</p>
@@ -83,7 +85,7 @@ export default function DashboardPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <Card>
-          <h2 className="mb-4 text-lg font-semibold">Recent screen activity</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t("dashboardHome.recentActivity")}</h2>
           <div className="space-y-3">
             {screens.map((screen) => (
               <div key={screen.id} className="flex items-center justify-between gap-4 rounded-md bg-surface p-3">
@@ -97,26 +99,26 @@ export default function DashboardPage() {
           </div>
         </Card>
         <Card>
-          <h2 className="mb-4 text-lg font-semibold">Quick actions</h2>
+          <h2 className="mb-4 text-lg font-semibold">{t("dashboardHome.quickActions")}</h2>
           <div className="grid gap-3">
             <Link href="/dashboard/screens/new" className="rounded-md bg-surface p-4 hover:bg-white/5">
               <Monitor className="mb-2 h-5 w-5 text-cyan" />
-              Create a screen <ArrowRight className="float-right h-4 w-4" />
+              {t("dashboardHome.createScreen")} <ArrowRight className="float-right h-4 w-4" />
             </Link>
             <Link href="/dashboard/playlists/new" className="rounded-md bg-surface p-4 hover:bg-white/5">
               <PlaySquare className="mb-2 h-5 w-5 text-cyan" />
-              Create playlist <ArrowRight className="float-right h-4 w-4" />
+              {t("dashboardHome.createPlaylist")} <ArrowRight className="float-right h-4 w-4" />
             </Link>
             <Link href="/dashboard/media/upload" className="rounded-md bg-surface p-4 hover:bg-white/5">
               <Images className="mb-2 h-5 w-5 text-cyan" />
-              Upload announcement media <ArrowRight className="float-right h-4 w-4" />
+              {t("dashboardHome.uploadAnnouncementMedia")} <ArrowRight className="float-right h-4 w-4" />
             </Link>
           </div>
         </Card>
       </div>
 
       <Card className="mt-6">
-        <h2 className="mb-4 text-lg font-semibold">Recently uploaded media</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t("dashboardHome.recentlyUploaded")}</h2>
         <div className="grid gap-3 md:grid-cols-5">
           {media.map((asset) => (
             <div key={asset.id} className="overflow-hidden rounded-md bg-surface">

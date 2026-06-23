@@ -4,6 +4,7 @@ import { ImageIcon, Video } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { formatBytes, formatDate } from "@/lib/utils/format";
 import type { MediaAsset } from "@/types/signage";
 
@@ -18,6 +19,7 @@ export function MediaCard({
   onEdit?: (asset: MediaAsset) => void;
   onDelete?: (asset: MediaAsset) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <Card className="overflow-hidden p-0">
       <div className="aspect-video bg-surface">
@@ -33,24 +35,24 @@ export function MediaCard({
             <h3 className="truncate font-semibold">{asset.title}</h3>
             <p className="mt-1 text-xs text-slate-400">{formatDate(asset.created_at)}</p>
           </div>
-          <Badge tone={asset.is_active ? "success" : "neutral"}>{asset.is_active ? "Active" : "Inactive"}</Badge>
+          <Badge tone={asset.is_active ? "success" : "neutral"}>{asset.is_active ? t("common.active") : t("common.inactive")}</Badge>
         </div>
         <div className="mb-4 flex flex-wrap gap-2 text-xs text-slate-400">
           <span className="inline-flex items-center gap-1">
             {asset.media_type === "image" ? <ImageIcon className="h-3 w-3" /> : <Video className="h-3 w-3" />}
-            {asset.media_type}
+            {asset.media_type === "image" ? t("mediaCard.image") : t("mediaCard.video")}
           </span>
           <span>{formatBytes(asset.file_size)}</span>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => onEdit?.(asset)}>
-            Edit
+            {t("common.edit")}
           </Button>
           <Button variant="secondary" onClick={() => onToggle?.(asset)}>
-            {asset.is_active ? "Deactivate" : "Activate"}
+            {asset.is_active ? t("common.deactivate") : t("common.activate")}
           </Button>
           <Button variant="ghost" onClick={() => onDelete?.(asset)}>
-            Delete
+            {t("common.delete")}
           </Button>
         </div>
       </div>

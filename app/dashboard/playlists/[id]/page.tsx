@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { listMediaAssets } from "@/lib/services/media";
 import { addMediaToPlaylist, getPlaylist, getPlaylistItems, removePlaylistItem, updatePlaylist, updatePlaylistItem } from "@/lib/services/playlists";
 import { assignPlaylistToScreen, listScreens } from "@/lib/services/screens";
@@ -20,6 +21,7 @@ import type { MediaAsset, Playlist, Screen } from "@/types/signage";
 export default function PlaylistEditPage() {
   const params = useParams<{ id: string }>();
   const { organization } = useCurrentOrganization();
+  const { t } = useLanguage();
   const supabase = createClient();
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [items, setItems] = useState<BuilderItem[]>([]);
@@ -46,17 +48,17 @@ export default function PlaylistEditPage() {
     void load();
   }, [organization, params.id]);
 
-  if (!playlist) return <LoadingState label="Loading playlist" />;
+  if (!playlist) return <LoadingState label={t("playlistEdit.loading")} />;
 
   return (
     <>
-      <PageHeader title={playlist.name} description="Edit playlist metadata, item durations, order, visibility, and screen assignments." />
+      <PageHeader title={playlist.name} description={t("playlistEdit.description")} />
       <Card className="mb-6">
         <div className="grid gap-4 md:grid-cols-2">
           <Input value={playlist.name} onChange={(event) => setPlaylist({ ...playlist, name: event.target.value })} />
           <Select value={playlist.is_active ? "active" : "inactive"} onChange={(event) => setPlaylist({ ...playlist, is_active: event.target.value === "active" })}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="active">{t("common.active")}</option>
+            <option value="inactive">{t("common.inactive")}</option>
           </Select>
           <Textarea className="md:col-span-2" value={playlist.description ?? ""} onChange={(event) => setPlaylist({ ...playlist, description: event.target.value })} />
         </div>
@@ -69,13 +71,13 @@ export default function PlaylistEditPage() {
                 is_active: playlist.is_active
               });
               setPlaylist(updated);
-              setMessage("Playlist saved. Assigned screens update in realtime.");
+              setMessage(t("playlistEdit.savedMessage"));
             }}
           >
-            Save playlist
+            {t("playlistEdit.savePlaylist")}
           </Button>
           <Select className="max-w-xs" value={assignScreenId} onChange={(event) => setAssignScreenId(event.target.value)}>
-            <option value="">Assign to screen...</option>
+            <option value="">{t("playlistEdit.assignToScreen")}</option>
             {screens.map((screen) => (
               <option key={screen.id} value={screen.id}>
                 {screen.name}
@@ -87,10 +89,10 @@ export default function PlaylistEditPage() {
             disabled={!assignScreenId || !playlist.is_active}
             onClick={async () => {
               await assignPlaylistToScreen(supabase, assignScreenId, playlist.id);
-              setMessage("Playlist assigned. Screen will refresh automatically.");
+              setMessage(t("playlistEdit.assignedMessage"));
             }}
           >
-            Assign
+            {t("playlistEdit.assign")}
           </Button>
           {message ? <p className="text-sm text-online">{message}</p> : null}
         </div>

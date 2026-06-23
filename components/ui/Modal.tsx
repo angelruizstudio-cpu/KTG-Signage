@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import { Button } from "./Button";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 interface ModalProps {
   title: string;
@@ -12,6 +13,7 @@ interface ModalProps {
 }
 
 export function Modal({ title, open, onClose, children }: ModalProps) {
+  const { t } = useLanguage();
   if (!open) return null;
 
   return (
@@ -19,7 +21,7 @@ export function Modal({ title, open, onClose, children }: ModalProps) {
       <div className="w-full max-w-lg rounded-lg border border-slate-700 bg-surface p-5 shadow-glow">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <Button variant="ghost" className="h-9 w-9 px-0" onClick={onClose} aria-label="Close modal">
+          <Button variant="ghost" className="h-9 w-9 px-0" onClick={onClose} aria-label={t("modal.closeAria")}>
             <X className="h-4 w-4" />
           </Button>
         </div>

@@ -9,11 +9,13 @@ import { Card } from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Textarea";
 import { createClient } from "@/lib/supabase/client";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { uploadMediaAsset } from "@/lib/services/media";
 
 export default function UploadMediaPage() {
   const router = useRouter();
   const { organization } = useCurrentOrganization();
+  const { t } = useLanguage();
   const supabase = createClient();
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
@@ -29,7 +31,7 @@ export default function UploadMediaPage() {
       await uploadMediaAsset(supabase, file, organization.id, description);
       router.push("/dashboard/media");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(err instanceof Error ? err.message : t("mediaUpload.error"));
     } finally {
       setLoading(false);
     }
@@ -37,14 +39,14 @@ export default function UploadMediaPage() {
 
   return (
     <>
-      <PageHeader title="Upload media" description="Supported: JPG, PNG, WebP, MP4, and WebM. Images up to 10 MB. Videos up to 250 MB." />
+      <PageHeader title={t("mediaUpload.title")} description={t("mediaUpload.description")} />
       <Card className="max-w-2xl">
         <form className="space-y-5" onSubmit={submit}>
           <label className="grid min-h-48 cursor-pointer place-items-center rounded-lg border border-dashed border-slate-700 bg-surface p-6 text-center hover:border-cyan">
             <div>
               <UploadCloud className="mx-auto mb-3 h-10 w-10 text-cyan" />
-              <p className="font-semibold">{file ? file.name : "Choose a media file"}</p>
-              <p className="mt-1 text-sm text-slate-400">The player will use the uploaded public URL for MVP reliability.</p>
+              <p className="font-semibold">{file ? file.name : t("mediaUpload.chooseFile")}</p>
+              <p className="mt-1 text-sm text-slate-400">{t("mediaUpload.hint")}</p>
             </div>
             <input
               type="file"
@@ -53,9 +55,9 @@ export default function UploadMediaPage() {
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             />
           </label>
-          <Textarea placeholder="Description" value={description} onChange={(event) => setDescription(event.target.value)} />
+          <Textarea placeholder={t("mediaUpload.descriptionPlaceholder")} value={description} onChange={(event) => setDescription(event.target.value)} />
           {error ? <p className="text-sm text-offline">{error}</p> : null}
-          <Button disabled={!file || loading}>{loading ? "Uploading..." : "Upload media"}</Button>
+          <Button disabled={!file || loading}>{loading ? t("mediaUpload.uploading") : t("mediaUpload.submit")}</Button>
         </form>
       </Card>
     </>

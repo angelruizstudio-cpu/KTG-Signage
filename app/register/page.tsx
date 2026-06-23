@@ -6,14 +6,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { createClient } from "@/lib/supabase/client";
 import { getSupabaseConfigError, isSupabaseConfigured } from "@/lib/supabase/env";
 import { ensureInitialOrganization } from "@/lib/services/organizations";
 import { getErrorMessage } from "@/lib/utils/errors";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
 export default function RegisterPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t } = useLanguage();
   const [fullName, setFullName] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,12 +36,12 @@ export default function RegisterPage() {
         options: { data: { full_name: fullName } }
       });
       if (signupError) throw signupError;
-      if (!data.user) throw new Error("Account created. Please confirm your email before onboarding.");
+      if (!data.user) throw new Error(t("register.confirmEmailError"));
       await ensureInitialOrganization(supabase, data.user, fullName, organizationName);
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(getErrorMessage(err, "Could not create account."));
+      setError(getErrorMessage(err, t("register.genericError")));
     } finally {
       setLoading(false);
     }
@@ -47,20 +50,46 @@ export default function RegisterPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-deep p-6">
       <Card className="w-full max-w-lg">
-        <h1 className="text-2xl font-semibold">Create your signage workspace</h1>
-        <p className="mt-2 text-sm text-slate-400">We will create your organization, demo screens, and a starter Welcome Loop playlist.</p>
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold">{t("register.title")}</h1>
+          <LanguageSwitcher />
+        </div>
+        <p className="mt-2 text-sm text-slate-400">{t("register.subtitle")}</p>
         <form className="mt-6 space-y-4" onSubmit={submit}>
-          <Input placeholder="Full name" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
-          <Input placeholder="Church or organization name" value={organizationName} onChange={(event) => setOrganizationName(event.target.value)} required />
-          <Input type="email" placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-          <Input type="password" placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={6} />
+          <Input
+            placeholder={t("register.fullNamePlaceholder")}
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            required
+          />
+          <Input
+            placeholder={t("register.orgNamePlaceholder")}
+            value={organizationName}
+            onChange={(event) => setOrganizationName(event.target.value)}
+            required
+          />
+          <Input
+            type="email"
+            placeholder={t("register.emailPlaceholder")}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+          <Input
+            type="password"
+            placeholder={t("register.passwordPlaceholder")}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            minLength={6}
+          />
           {error ? <p className="text-sm text-offline">{error}</p> : null}
           <Button className="w-full" disabled={loading}>
-            {loading ? "Creating workspace..." : "Register"}
+            {loading ? t("register.creating") : t("register.submit")}
           </Button>
         </form>
         <p className="mt-5 text-sm text-slate-400">
-          Already have an account? <Link className="text-cyan" href="/login">Login</Link>
+          {t("register.haveAccount")} <Link className="text-cyan" href="/login">{t("register.login")}</Link>
         </p>
       </Card>
     </main>
