@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [name, setName] = useState(organization?.name ?? "");
   const [logoUrl, setLogoUrl] = useState(organization?.logo_url ?? "");
   const [primaryColor, setPrimaryColor] = useState(organization?.primary_color ?? "#2563EB");
+  const [alertEmail, setAlertEmail] = useState(organization?.alert_email ?? "");
   const [message, setMessage] = useState<string | null>(null);
 
   if (!organization) return null;
@@ -39,6 +40,27 @@ export default function SettingsPage() {
             {t("settings.save")}
           </Button>
           {message ? <p className="text-sm text-online">{message}</p> : null}
+        </div>
+      </Card>
+      <Card className="mt-6 max-w-2xl">
+        <h2 className="text-lg font-semibold">{t("settings.alertsTitle")}</h2>
+        <p className="mt-1 text-sm text-slate-400">{t("settings.alertsDescription")}</p>
+        <div className="mt-4 space-y-4">
+          <Input
+            type="email"
+            value={alertEmail}
+            onChange={(event) => setAlertEmail(event.target.value)}
+            placeholder={t("settings.alertEmailPlaceholder")}
+          />
+          <Button
+            onClick={async () => {
+              await updateOrganization(supabase, organization.id, { alert_email: alertEmail || null });
+              await reload();
+              setMessage(t("settings.savedMessage"));
+            }}
+          >
+            {t("settings.save")}
+          </Button>
         </div>
       </Card>
       <Card className="mt-6 max-w-2xl">

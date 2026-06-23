@@ -57,6 +57,7 @@ export interface Database {
         event_type: string;
         message: string | null;
         metadata: Json | null;
+        notified_at: string | null;
         created_at: string;
       }>;
     };

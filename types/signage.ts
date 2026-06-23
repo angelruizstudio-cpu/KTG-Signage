@@ -10,6 +10,7 @@ export interface Organization {
   slug: string;
   logo_url: string | null;
   primary_color: string;
+  alert_email: string | null;
   created_at: string;
   updated_at: string;
 }
