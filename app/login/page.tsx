@@ -29,13 +29,27 @@ export default function LoginPage() {
       setError(getSupabaseConfigError());
       return;
     }
+
     const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
     if (loginError) {
+      setLoading(false);
       setError(loginError.message);
       return;
     }
-    router.push("/dashboard");
+
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
+
+    setLoading(false);
+
+    if (sessionError || !session) {
+      setError(sessionError?.message ?? "Could not persist your session. Please try again.");
+      return;
+    }
+
+    router.replace("/dashboard");
     router.refresh();
   }
 

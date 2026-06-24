@@ -7,10 +7,13 @@ let browserClient: SupabaseClient<Database> | undefined;
 
 export function createClient(): SupabaseClient<Database> {
   if (!browserClient) {
-    browserClient = createBrowserClient<Database>(
-      getSupabaseUrl(),
-      getSupabaseAnonKey()
-    );
+    browserClient = createBrowserClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    });
   }
 
   return browserClient as SupabaseClient<Database>;
