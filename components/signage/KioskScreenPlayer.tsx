@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Maximize, Wifi, WifiOff, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useDeviceAssignment } from "@/lib/hooks/useDeviceAssignment";
-import { useDeviceHeartbeat } from "@/lib/hooks/useDeviceHeartbeat";
+import { useHeartbeat } from "@/lib/hooks/useHeartbeat";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { updateDeviceHeartbeat } from "@/lib/services/devices";
 import type { ScreenPayloadItem } from "@/types/signage";
 import { cn } from "@/lib/utils/cn";
 
@@ -16,7 +17,7 @@ function durationMs(item: ScreenPayloadItem) {
 export function KioskScreenPlayer() {
   const { t } = useLanguage();
   const { assignment, deviceKey, loading, error } = useDeviceAssignment();
-  useDeviceHeartbeat(deviceKey);
+  useHeartbeat(deviceKey, updateDeviceHeartbeat);
   const [index, setIndex] = useState(0);
   const [kioskActive, setKioskActive] = useState(false);
   const [showExit, setShowExit] = useState(false);

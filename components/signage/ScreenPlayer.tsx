@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Wifi, WifiOff } from "lucide-react";
-import { useScreenHeartbeat } from "@/lib/hooks/useScreenHeartbeat";
+import { useHeartbeat } from "@/lib/hooks/useHeartbeat";
 import { useScreenRealtime } from "@/lib/hooks/useScreenRealtime";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { updateScreenHeartbeat } from "@/lib/services/screenPayload";
 import type { ScreenPayloadItem } from "@/types/signage";
 import { cn } from "@/lib/utils/cn";
 
@@ -14,7 +15,7 @@ function getDuration(item: ScreenPayloadItem) {
 
 export function ScreenPlayer({ screenKey }: { screenKey: string }) {
   const { t } = useLanguage();
-  useScreenHeartbeat(screenKey);
+  useHeartbeat(screenKey, updateScreenHeartbeat);
   const { payload, loading, error, usingStoredPayload, connectionState } = useScreenRealtime(screenKey);
   const [index, setIndex] = useState(0);
   const [cursorHidden, setCursorHidden] = useState(false);

@@ -2,30 +2,31 @@
 
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { updateScreenHeartbeat } from "@/lib/services/screenPayload";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-export function useScreenHeartbeat(screenKey: string) {
+export function useHeartbeat(key: string | null, beat: (supabase: SupabaseClient, key: string) => Promise<unknown>) {
   useEffect(() => {
-    if (!screenKey) return;
+    if (!key) return;
+    const activeKey = key;
     const supabase = createClient();
     let cancelled = false;
 
-    async function beat() {
+    async function run() {
       try {
-        await updateScreenHeartbeat(supabase, screenKey);
+        await beat(supabase, activeKey);
       } catch (error) {
         console.warn("Heartbeat failed", error);
       }
     }
 
-    void beat();
+    void run();
     const interval = window.setInterval(() => {
-      if (!cancelled) void beat();
+      if (!cancelled) void run();
     }, 30000);
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [screenKey]);
+  }, [key, beat]);
 }
