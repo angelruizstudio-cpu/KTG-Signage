@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/Button";
@@ -18,18 +18,23 @@ import type { Playlist } from "@/types/signage";
 export default function PlaylistsPage() {
   const { organization } = useCurrentOrganization();
   const { t } = useLanguage();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!organization) return;
+    setLoading(true);
+    setLoadError(null);
     listPlaylists(supabase, organization.id)
       .then(setPlaylists)
+      .catch((err) => setLoadError(err instanceof Error ? err.message : "Could not load playlists."))
       .finally(() => setLoading(false));
   }, [organization, supabase]);
 
   if (loading) return <LoadingState label={t("playlists.loading")} />;
+  if (loadError) return <EmptyState title="Could not load playlists" description={loadError} />;
 
   return (
     <>
@@ -65,3 +70,4 @@ export default function PlaylistsPage() {
     </>
   );
 }
+

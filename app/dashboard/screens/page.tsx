@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { ScreenStatusCard } from "@/components/screens/ScreenStatusCard";
@@ -17,18 +17,23 @@ import type { Screen } from "@/types/signage";
 export default function ScreensPage() {
   const { organization } = useCurrentOrganization();
   const { t } = useLanguage();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [screens, setScreens] = useState<Screen[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!organization) return;
+    setLoading(true);
+    setLoadError(null);
     listScreens(supabase, organization.id)
       .then(setScreens)
+      .catch((err) => setLoadError(err instanceof Error ? err.message : "Could not load screens."))
       .finally(() => setLoading(false));
   }, [organization, supabase]);
 
   if (loading) return <LoadingState label={t("screens.loading")} />;
+  if (loadError) return <EmptyState title="Could not load screens" description={loadError} />;
 
   return (
     <>
@@ -56,3 +61,4 @@ export default function ScreensPage() {
     </>
   );
 }
+
