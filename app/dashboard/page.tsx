@@ -6,6 +6,7 @@ import { ArrowRight, Images, Monitor, PlaySquare, Upload } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -21,6 +22,7 @@ export default function DashboardPage() {
   const [screens, setScreens] = useState<Screen[]>([]);
   const [media, setMedia] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!organization) return;
@@ -50,7 +52,8 @@ export default function DashboardPage() {
     void load();
   }, [organization, supabase]);
 
-  if (loading || !stats) return <LoadingState label={t("dashboardHome.loading")} />;
+  if (loading) return <LoadingState label={t("dashboardHome.loading")} />;
+  if (error || !stats) return <EmptyState title="Could not load dashboard" description={error ?? "Try refreshing the page."} />;
 
   return (
     <>
@@ -133,3 +136,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+
