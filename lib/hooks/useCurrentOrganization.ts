@@ -19,7 +19,7 @@ export function CurrentOrganizationProvider({ value, children }: { value: Curren
   return createElement(CurrentOrganizationContext.Provider, { value }, children);
 }
 
-function useLoadCurrentOrganization(): CurrentOrganizationState {
+function useLoadCurrentOrganization(enabled: boolean): CurrentOrganizationState {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [membership, setMembership] = useState<OrganizationMember | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +27,7 @@ function useLoadCurrentOrganization(): CurrentOrganizationState {
   const supabase = useMemo(() => createClient(), []);
 
   const reload = useCallback(async () => {
+    if (!enabled) return;
     setLoading(true);
     setError(null);
     try {
@@ -38,7 +39,7 @@ function useLoadCurrentOrganization(): CurrentOrganizationState {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, [enabled, supabase]);
 
   useEffect(() => {
     void reload();
@@ -48,8 +49,10 @@ function useLoadCurrentOrganization(): CurrentOrganizationState {
 }
 
 export function useCurrentOrganization() {
+  // Both hooks run unconditionally to keep hook order stable; the fallback
+  // loader stays idle while a provider supplies the state.
   const context = useContext(CurrentOrganizationContext);
-  if (context) return context;
-  return useLoadCurrentOrganization();
+  const fallback = useLoadCurrentOrganization(!context);
+  return context ?? fallback;
 }
 

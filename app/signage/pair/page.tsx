@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { createClient } from "@/lib/supabase/client";
-import { startDevicePairing } from "@/lib/services/devices";
+import { getDeviceAssignment, startDevicePairing } from "@/lib/services/devices";
 import { deviceKeyStorageKey } from "@/lib/hooks/useDeviceAssignment";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
@@ -13,6 +13,7 @@ export default function PairDevicePage() {
   const router = useRouter();
   const { t } = useLanguage();
   const supabase = createClient();
+  const [deviceKey, setDeviceKey] = useState<string | null>(null);
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +23,7 @@ export default function PairDevicePage() {
     try {
       const result = await startDevicePairing(supabase, navigator.userAgent);
       window.localStorage.setItem(deviceKeyStorageKey, result.device_key);
+      setDeviceKey(result.device_key);
       setPairingCode(result.pairing_code);
       setExpiresAt(result.expires_at);
     } catch (err) {
@@ -38,19 +40,33 @@ export default function PairDevicePage() {
     void startPairing();
   }, []);
 
+  // Anonymous devices cannot read signage_devices through RLS, so pairing
+  // completion arrives via broadcast on the device_key topic, with polling
+  // as the backstop.
   useEffect(() => {
-    if (!pairingCode) return;
+    if (!deviceKey) return;
+
+    const goToPlayerIfPaired = async () => {
+      try {
+        const assignment = await getDeviceAssignment(supabase, deviceKey);
+        if (assignment?.device?.status === "paired") router.replace("/signage/player");
+      } catch {
+        // Keep waiting; the poll retries.
+      }
+    };
+
     const channel = supabase
-      .channel(`pairing-${pairingCode}`)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "signage_devices", filter: `pairing_code=eq.${pairingCode}` }, (change) => {
-        if ("status" in change.new && change.new.status === "paired") router.replace("/signage/player");
-      })
+      .channel(`device-signal:${deviceKey}`)
+      .on("broadcast", { event: "device_updated" }, () => void goToPlayerIfPaired())
       .subscribe();
 
+    const pollTimer = window.setInterval(() => void goToPlayerIfPaired(), 5000);
+
     return () => {
+      window.clearInterval(pollTimer);
       void supabase.removeChannel(channel);
     };
-  }, [pairingCode, router, supabase]);
+  }, [deviceKey, router, supabase]);
 
   return (
     <main className="grid min-h-screen place-items-center bg-black p-8 text-center text-white">

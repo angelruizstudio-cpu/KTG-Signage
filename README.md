@@ -72,19 +72,9 @@ Never expose a Supabase service role key in the frontend.
 ## Supabase Setup
 
 1. Create a Supabase project.
-2. Run migrations in order:
-   - `supabase/migrations/001_initial_schema.sql`
-   - `supabase/migrations/002_rls_policies.sql`
-   - `supabase/migrations/003_rpc_functions.sql`
-   - `supabase/migrations/004_storage_policies.sql`
+2. Run every migration in `supabase/migrations/` in numeric order (001 through 009).
 3. Confirm the `signage-media` bucket exists and is public for the MVP.
-4. Confirm Realtime is enabled for:
-   - `screens`
-   - `media_assets`
-   - `playlists`
-   - `playlist_items`
-   - `screen_playlists`
-   - `schedules`
+4. Players receive change signals through Supabase Realtime Broadcast (no table needs to be publicly readable). Enable the `pg_cron` extension so migration 009 can schedule `mark_stale_screens_offline()` and pairing cleanup automatically.
 
 ## Database and Security
 
@@ -147,10 +137,9 @@ The kiosk player asks the browser to enter fullscreen, hides the cursor, shows n
 - Set production `NEXT_PUBLIC_APP_URL`.
 - Use HTTPS for device player reliability.
 - Keep the anon key public and RLS strict.
-- Schedule `mark_stale_screens_offline()` from Supabase cron or an external job to mark screens offline after 90 seconds without heartbeat.
-- Public media URLs are used for MVP reliability. Move to signed URLs when device registration and pairing codes are implemented.
-- For Azure App Service deployment, see `docs/AZURE_DEPLOYMENT.md`.
-- For Azure Database for PostgreSQL migration, see `docs/AZURE_POSTGRESQL_MIGRATION.md`.
+- Migration 009 schedules `mark_stale_screens_offline()` and pairing cleanup with `pg_cron` when the extension is enabled; otherwise schedule them from Supabase cron or an external job.
+- Set the organization timezone in Dashboard → Settings so schedules (days and time windows) run on local church time.
+- Public media URLs are used for MVP reliability. Move to signed URLs when per-device auth is implemented.
 
 ## Roadmap
 

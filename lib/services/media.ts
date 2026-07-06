@@ -78,8 +78,10 @@ export async function updateMediaAsset(
 }
 
 export async function deleteMediaAsset(supabase: SupabaseClient<Database>, asset: MediaAsset) {
-  const { error: storageError } = await supabase.storage.from("signage-media").remove([asset.storage_path]);
-  if (storageError) throw storageError;
+  // Delete the row first: if the file were removed first and the row delete
+  // failed, playlists would keep items pointing at a broken URL.
   const { error } = await supabase.from("media_assets").delete().eq("id", asset.id);
   if (error) throw error;
+  const { error: storageError } = await supabase.storage.from("signage-media").remove([asset.storage_path]);
+  if (storageError) console.warn("Media row deleted but storage cleanup failed", storageError);
 }
