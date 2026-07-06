@@ -32,13 +32,19 @@ export default function DevicesPage() {
   async function load() {
     if (!organization) return;
     setLoading(true);
-    const [nextDevices, nextScreens] = await Promise.all([
-      listSignageDevices(supabase, organization.id),
-      listScreens(supabase, organization.id)
-    ]);
-    setDevices(nextDevices);
-    setScreens(nextScreens);
-    setLoading(false);
+    setError(null);
+    try {
+      const [nextDevices, nextScreens] = await Promise.all([
+        listSignageDevices(supabase, organization.id),
+        listScreens(supabase, organization.id)
+      ]);
+      setDevices(nextDevices);
+      setScreens(nextScreens);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("devices.pairError"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -117,3 +123,4 @@ export default function DevicesPage() {
     </>
   );
 }
+

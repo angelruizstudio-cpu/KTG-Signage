@@ -24,6 +24,7 @@ export default function MediaPage() {
   const supabase = createClient();
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<MediaAsset | null>(null);
   const [editTarget, setEditTarget] = useState<MediaAsset | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -32,8 +33,14 @@ export default function MediaPage() {
   async function load() {
     if (!organization) return;
     setLoading(true);
-    setAssets(await listMediaAssets(supabase, organization.id));
-    setLoading(false);
+    setLoadError(null);
+    try {
+      setAssets(await listMediaAssets(supabase, organization.id));
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Could not load media.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -41,6 +48,7 @@ export default function MediaPage() {
   }, [organization]);
 
   if (loading) return <LoadingState label={t("media.loading")} />;
+  if (loadError) return <EmptyState title="Could not load media" description={loadError} />;
 
   return (
     <>
@@ -112,3 +120,4 @@ export default function MediaPage() {
     </>
   );
 }
+

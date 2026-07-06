@@ -26,6 +26,7 @@ export default function SchedulesPage() {
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     screen_id: "",
@@ -41,15 +42,21 @@ export default function SchedulesPage() {
   async function load() {
     if (!organization) return;
     setLoading(true);
-    const [nextSchedules, nextScreens, nextPlaylists] = await Promise.all([
-      listSchedules(supabase, organization.id),
-      listScreens(supabase, organization.id),
-      listPlaylists(supabase, organization.id)
-    ]);
-    setSchedules(nextSchedules);
-    setScreens(nextScreens);
-    setPlaylists(nextPlaylists.filter((playlist) => playlist.is_active));
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const [nextSchedules, nextScreens, nextPlaylists] = await Promise.all([
+        listSchedules(supabase, organization.id),
+        listScreens(supabase, organization.id),
+        listPlaylists(supabase, organization.id)
+      ]);
+      setSchedules(nextSchedules);
+      setScreens(nextScreens);
+      setPlaylists(nextPlaylists.filter((playlist) => playlist.is_active));
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Could not load schedules.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -57,6 +64,7 @@ export default function SchedulesPage() {
   }, [organization]);
 
   if (loading) return <LoadingState label={t("schedules.loading")} />;
+  if (loadError) return <Card><p className="text-sm text-offline">{loadError}</p></Card>;
 
   return (
     <>
@@ -140,3 +148,4 @@ export default function SchedulesPage() {
     </>
   );
 }
+

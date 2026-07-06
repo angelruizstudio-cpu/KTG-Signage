@@ -29,25 +29,34 @@ export default function DashboardPage() {
     const organizationId = organization.id;
     async function load() {
       setLoading(true);
-      const [screensResult, mediaResult, playlistsResult, schedulesResult] = await Promise.all([
-        supabase.from("screens").select("*").eq("organization_id", organizationId),
-        supabase.from("media_assets").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }),
-        supabase.from("playlists").select("*").eq("organization_id", organizationId),
-        supabase.from("schedules").select("*").eq("organization_id", organizationId).eq("is_active", true)
-      ]);
-      const allScreens = (screensResult.data ?? []) as Screen[];
-      const recentMedia = (mediaResult.data ?? []) as MediaAsset[];
-      setScreens(allScreens.slice(0, 5));
-      setMedia(recentMedia.slice(0, 5));
-      setStats({
-        totalScreens: allScreens.length,
-        onlineScreens: allScreens.filter((screen) => screen.status === "online").length,
-        offlineScreens: allScreens.filter((screen) => screen.status === "offline").length,
-        totalMediaAssets: recentMedia.length,
-        totalPlaylists: playlistsResult.data?.length ?? 0,
-        activeSchedules: schedulesResult.data?.length ?? 0
-      });
-      setLoading(false);
+      setError(null);
+      try {
+        const [screensResult, mediaResult, playlistsResult, schedulesResult] = await Promise.all([
+          supabase.from("screens").select("*").eq("organization_id", organizationId),
+          supabase.from("media_assets").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }),
+          supabase.from("playlists").select("*").eq("organization_id", organizationId),
+          supabase.from("schedules").select("*").eq("organization_id", organizationId).eq("is_active", true)
+        ]);
+        const queryError = screensResult.error ?? mediaResult.error ?? playlistsResult.error ?? schedulesResult.error;
+        if (queryError) throw queryError;
+
+        const allScreens = (screensResult.data ?? []) as Screen[];
+        const recentMedia = (mediaResult.data ?? []) as MediaAsset[];
+        setScreens(allScreens.slice(0, 5));
+        setMedia(recentMedia.slice(0, 5));
+        setStats({
+          totalScreens: allScreens.length,
+          onlineScreens: allScreens.filter((screen) => screen.status === "online").length,
+          offlineScreens: allScreens.filter((screen) => screen.status === "offline").length,
+          totalMediaAssets: recentMedia.length,
+          totalPlaylists: playlistsResult.data?.length ?? 0,
+          activeSchedules: schedulesResult.data?.length ?? 0
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not load dashboard.");
+      } finally {
+        setLoading(false);
+      }
     }
     void load();
   }, [organization, supabase]);
@@ -136,5 +145,6 @@ export default function DashboardPage() {
     </>
   );
 }
+
 
 
