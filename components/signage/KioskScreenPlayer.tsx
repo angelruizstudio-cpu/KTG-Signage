@@ -14,6 +14,12 @@ function durationMs(item: ScreenPayloadItem) {
   return Math.max(3, item.display_duration_seconds || item.media_asset.duration_seconds || 10) * 1000;
 }
 
+// Watchdog for videos that stall without firing onEnded/onError.
+function videoWatchdogMs(item: ScreenPayloadItem) {
+  const knownDuration = item.media_asset.duration_seconds;
+  return knownDuration ? (knownDuration + 60) * 1000 : 10 * 60 * 1000;
+}
+
 export function KioskScreenPlayer() {
   const { t } = useLanguage();
   const { assignment, deviceKey, loading, error } = useDeviceAssignment();
@@ -66,11 +72,17 @@ export function KioskScreenPlayer() {
     setIndex(0);
   }, [payload?.playlist?.id, items.length]);
 
+  // The index grows monotonically (modulo applied on read) so a single-item
+  // playlist still remounts the media element and loops correctly.
   useEffect(() => {
-    if (!current || current.media_asset.media_type === "video") return;
-    const timer = window.setTimeout(() => setIndex((value) => (value + 1) % Math.max(items.length, 1)), durationMs(current));
+    if (!current) return;
+    const isVideo = current.media_asset.media_type === "video";
+    const timer = window.setTimeout(
+      () => setIndex((value) => value + 1),
+      isVideo ? videoWatchdogMs(current) : durationMs(current)
+    );
     return () => window.clearTimeout(timer);
-  }, [current, items.length]);
+  }, [current, index, items.length]);
 
   if (loading) {
     return <main className="grid min-h-screen place-items-center bg-black text-white">{t("kioskPlayer.loadingDevice")}</main>;
@@ -129,8 +141,8 @@ export function KioskScreenPlayer() {
               autoPlay
               muted
               playsInline
-              onEnded={() => setIndex((value) => (value + 1) % Math.max(items.length, 1))}
-              onError={() => setIndex((value) => (value + 1) % Math.max(items.length, 1))}
+              onEnded={() => setIndex((value) => value + 1)}
+              onError={() => setIndex((value) => value + 1)}
             />
           )}
         </section>

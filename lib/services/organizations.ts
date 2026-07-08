@@ -57,7 +57,7 @@ export async function ensureInitialOrganization(
 export async function updateOrganization(
   supabase: SupabaseClient<Database>,
   organizationId: string,
-  values: Pick<Organization, "name" | "primary_color" | "logo_url">
+  values: Pick<Organization, "name" | "primary_color" | "logo_url"> & Partial<Pick<Organization, "timezone">>
 ) {
   const { data, error } = await supabase
     .from("organizations")

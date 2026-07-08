@@ -1,16 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
+import { Select } from "@/components/ui/Select";
 import { useCurrentOrganization } from "@/lib/hooks/useCurrentOrganization";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import { updateOrganization } from "@/lib/services/organizations";
+
+const fallbackTimezones = [
+  "UTC",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Puerto_Rico",
+  "America/Mexico_City",
+  "America/Bogota",
+  "America/Sao_Paulo",
+  "Europe/Madrid"
+];
 
 export default function SettingsPage() {
   const { organization, loading, error, reload } = useCurrentOrganization();
@@ -19,15 +33,25 @@ export default function SettingsPage() {
   const [name, setName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#2563EB");
+  const [timezone, setTimezone] = useState("UTC");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  const timezones = useMemo(() => {
+    try {
+      return Intl.supportedValuesOf("timeZone");
+    } catch {
+      return fallbackTimezones;
+    }
+  }, []);
 
   useEffect(() => {
     if (!organization) return;
     setName(organization.name ?? "");
     setLogoUrl(organization.logo_url ?? "");
     setPrimaryColor(organization.primary_color ?? "#2563EB");
+    setTimezone(organization.timezone ?? "UTC");
   }, [organization]);
 
   async function saveSettings() {
@@ -37,7 +61,7 @@ export default function SettingsPage() {
     setSaveError(null);
 
     try {
-      await updateOrganization(supabase, organization.id, { name, logo_url: logoUrl || null, primary_color: primaryColor });
+      await updateOrganization(supabase, organization.id, { name, logo_url: logoUrl || null, primary_color: primaryColor, timezone });
       await reload();
       setMessage(t("settings.savedMessage"));
     } catch (err) {
@@ -65,6 +89,19 @@ export default function SettingsPage() {
           <Input value={name} onChange={(event) => setName(event.target.value)} placeholder={t("settings.namePlaceholder")} />
           <Input value={logoUrl} onChange={(event) => setLogoUrl(event.target.value)} placeholder={t("settings.logoPlaceholder")} />
           <Input type="color" value={primaryColor} onChange={(event) => setPrimaryColor(event.target.value)} />
+          <div>
+            <label className="mb-1 block text-sm text-slate-400" htmlFor="organization-timezone">
+              {t("settings.timezoneLabel")}
+            </label>
+            <Select id="organization-timezone" value={timezone} onChange={(event) => setTimezone(event.target.value)}>
+              {timezones.map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone}
+                </option>
+              ))}
+            </Select>
+            <p className="mt-1 text-xs text-slate-500">{t("settings.timezoneHint")}</p>
+          </div>
           <Button onClick={saveSettings} disabled={saving || !name.trim()}>
             {saving ? "Saving..." : t("settings.save")}
           </Button>

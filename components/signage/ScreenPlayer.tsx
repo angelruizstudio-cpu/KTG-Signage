@@ -13,6 +13,12 @@ function getDuration(item: ScreenPayloadItem) {
   return Math.max(3, item.display_duration_seconds || item.media_asset.duration_seconds || 10) * 1000;
 }
 
+// Watchdog for videos that stall without firing onEnded/onError.
+function getVideoWatchdogMs(item: ScreenPayloadItem) {
+  const knownDuration = item.media_asset.duration_seconds;
+  return knownDuration ? (knownDuration + 60) * 1000 : 10 * 60 * 1000;
+}
+
 export function ScreenPlayer({ screenKey }: { screenKey: string }) {
   const { t } = useLanguage();
   useHeartbeat(screenKey, updateScreenHeartbeat);
@@ -42,16 +48,19 @@ export function ScreenPlayer({ screenKey }: { screenKey: string }) {
     };
   }, []);
 
+  // The index grows monotonically (modulo applied on read) so a single-item
+  // playlist still remounts the media element and loops correctly.
   useEffect(() => {
-    if (!current || current.media_asset.media_type === "video") return;
+    if (!current) return;
+    const isVideo = current.media_asset.media_type === "video";
     const timer = window.setTimeout(() => {
-      setIndex((value) => (value + 1) % Math.max(items.length, 1));
-    }, getDuration(current));
+      setIndex((value) => value + 1);
+    }, isVideo ? getVideoWatchdogMs(current) : getDuration(current));
     return () => window.clearTimeout(timer);
-  }, [current, items.length]);
+  }, [current, index, items.length]);
 
   const advance = () => {
-    setIndex((value) => (value + 1) % Math.max(items.length, 1));
+    setIndex((value) => value + 1);
   };
 
   if (loading && !payload) {
