@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { withTimeout } from "@/lib/utils/timeout";
 import type { DeviceAssignment, SignageDevice } from "@/types/signage";
 
 export async function startDevicePairing(supabase: SupabaseClient<Database>, userAgent?: string) {
@@ -41,11 +42,14 @@ export async function updateDeviceHeartbeat(supabase: SupabaseClient<Database>, 
 }
 
 export async function listSignageDevices(supabase: SupabaseClient<Database>, organizationId: string) {
-  const { data, error } = await supabase
-    .from("signage_devices")
-    .select("*")
-    .eq("organization_id", organizationId)
-    .order("created_at", { ascending: false });
+  const { data, error } = await withTimeout(
+    supabase
+      .from("signage_devices")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .order("created_at", { ascending: false }),
+    "Supabase devices request timed out."
+  );
   if (error) throw error;
   return data as SignageDevice[];
 }
@@ -69,3 +73,6 @@ export async function assignDeviceToScreen(supabase: SupabaseClient<Database>, d
     .eq("id", deviceId);
   if (error) throw error;
 }
+
+
+

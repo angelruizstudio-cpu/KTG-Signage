@@ -1,13 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { withTimeout } from "@/lib/utils/timeout";
 import type { Schedule } from "@/types/signage";
 
 export async function listSchedules(supabase: SupabaseClient<Database>, organizationId: string) {
-  const { data, error } = await supabase
-    .from("schedules")
-    .select("*")
-    .eq("organization_id", organizationId)
-    .order("priority", { ascending: false });
+  const { data, error } = await withTimeout(
+    supabase
+      .from("schedules")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .order("priority", { ascending: false }),
+    "Supabase schedules request timed out."
+  );
   if (error) throw error;
   return data as Schedule[];
 }
@@ -26,3 +30,6 @@ export async function deleteSchedule(supabase: SupabaseClient<Database>, id: str
   const { error } = await supabase.from("schedules").delete().eq("id", id);
   if (error) throw error;
 }
+
+
+

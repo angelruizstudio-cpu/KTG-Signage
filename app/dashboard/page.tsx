@@ -13,6 +13,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { DashboardStats, MediaAsset, Screen } from "@/types/signage";
 import { formatDate } from "@/lib/utils/format";
+import { withTimeout } from "@/lib/utils/timeout";
 
 export default function DashboardPage() {
   const { organization } = useCurrentOrganization();
@@ -31,12 +32,12 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        const [screensResult, mediaResult, playlistsResult, schedulesResult] = await Promise.all([
+        const [screensResult, mediaResult, playlistsResult, schedulesResult] = await withTimeout(Promise.all([
           supabase.from("screens").select("*").eq("organization_id", organizationId),
           supabase.from("media_assets").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }),
           supabase.from("playlists").select("*").eq("organization_id", organizationId),
           supabase.from("schedules").select("*").eq("organization_id", organizationId).eq("is_active", true)
-        ]);
+        ]), "Dashboard queries timed out.");
         const queryError = screensResult.error ?? mediaResult.error ?? playlistsResult.error ?? schedulesResult.error;
         if (queryError) throw queryError;
 
@@ -145,6 +146,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
 
 
 

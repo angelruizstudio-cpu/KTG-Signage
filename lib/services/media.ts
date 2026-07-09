@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { withTimeout } from "@/lib/utils/timeout";
 import type { MediaAsset, MediaType } from "@/types/signage";
 
 const allowedTypes: Record<string, { type: MediaType; maxSize: number }> = {
@@ -11,11 +12,14 @@ const allowedTypes: Record<string, { type: MediaType; maxSize: number }> = {
 };
 
 export async function listMediaAssets(supabase: SupabaseClient<Database>, organizationId: string) {
-  const { data, error } = await supabase
-    .from("media_assets")
-    .select("*")
-    .eq("organization_id", organizationId)
-    .order("created_at", { ascending: false });
+  const { data, error } = await withTimeout(
+    supabase
+      .from("media_assets")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .order("created_at", { ascending: false }),
+    "Supabase media request timed out."
+  );
   if (error) throw error;
   return data as MediaAsset[];
 }
@@ -85,3 +89,6 @@ export async function deleteMediaAsset(supabase: SupabaseClient<Database>, asset
   const { error: storageError } = await supabase.storage.from("signage-media").remove([asset.storage_path]);
   if (storageError) console.warn("Media row deleted but storage cleanup failed", storageError);
 }
+
+
+

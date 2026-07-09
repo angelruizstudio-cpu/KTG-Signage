@@ -1,13 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { withTimeout } from "@/lib/utils/timeout";
 import type { MediaAsset, Playlist, PlaylistItem } from "@/types/signage";
 
 export async function listPlaylists(supabase: SupabaseClient<Database>, organizationId: string) {
-  const { data, error } = await supabase
-    .from("playlists")
-    .select("*")
-    .eq("organization_id", organizationId)
-    .order("created_at", { ascending: false });
+  const { data, error } = await withTimeout(
+    supabase
+      .from("playlists")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .order("created_at", { ascending: false }),
+    "Supabase playlists request timed out."
+  );
   if (error) throw error;
   return data as Playlist[];
 }
@@ -105,3 +109,6 @@ export async function removePlaylistItem(supabase: SupabaseClient<Database>, id:
   const { error } = await supabase.from("playlist_items").delete().eq("id", id);
   if (error) throw error;
 }
+
+
+

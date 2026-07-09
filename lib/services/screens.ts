@@ -1,14 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { withTimeout } from "@/lib/utils/timeout";
 import type { Screen, ScreenOrientation } from "@/types/signage";
 import { createScreenKey } from "@/lib/utils/format";
 
 export async function listScreens(supabase: SupabaseClient<Database>, organizationId: string) {
-  const { data, error } = await supabase
-    .from("screens")
-    .select("*")
-    .eq("organization_id", organizationId)
-    .order("created_at", { ascending: false });
+  const { data, error } = await withTimeout(
+    supabase
+      .from("screens")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .order("created_at", { ascending: false }),
+    "Supabase screens request timed out."
+  );
   if (error) throw error;
   return data as Screen[];
 }
@@ -99,3 +103,6 @@ export async function assignPlaylistToScreen(
     .eq("id", screenId);
   if (screenError) throw screenError;
 }
+
+
+
