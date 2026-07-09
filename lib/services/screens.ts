@@ -2,7 +2,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { withTimeout } from "@/lib/utils/timeout";
 import type { Screen, ScreenOrientation } from "@/types/signage";
-import { createScreenKey } from "@/lib/utils/format";
 
 export async function listScreens(supabase: SupabaseClient<Database>, organizationId: string) {
   const { data, error } = await withTimeout(
@@ -30,18 +29,13 @@ export async function createScreen(
 ) {
   if (!values.name.trim()) throw new Error("Screen name is required.");
 
-  const { data, error } = await supabase
-    .from("screens")
-    .insert({
-      organization_id: organizationId,
-      name: values.name.trim(),
-      location: values.location || null,
-      orientation: values.orientation,
-      current_playlist_id: values.current_playlist_id ?? null,
-      screen_key: createScreenKey(values.name)
-    })
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("create_screen", {
+    organization_id_input: organizationId,
+    name_input: values.name,
+    location_input: values.location || null,
+    orientation_input: values.orientation,
+    current_playlist_id_input: values.current_playlist_id ?? null
+  });
   if (error) throw error;
   return data as Screen;
 }
@@ -63,7 +57,7 @@ export async function deleteScreen(supabase: SupabaseClient<Database>, id: strin
 }
 
 export async function regenerateScreenKey(supabase: SupabaseClient<Database>, screen: Screen) {
-  const screen_key = createScreenKey(screen.name);
+  const screen_key = `${screen.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "screen"}-${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
   return updateScreen(supabase, screen.id, { screen_key } as Partial<Screen>);
 }
 
@@ -103,6 +97,3 @@ export async function assignPlaylistToScreen(
     .eq("id", screenId);
   if (screenError) throw screenError;
 }
-
-
-

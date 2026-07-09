@@ -100,7 +100,10 @@ export interface Database {
         Args: { device_key_input: string };
         Returns: void;
       };
-      bootstrap_organization: {
+      create_screen: {
+        Args: { organization_id_input: string; name_input: string; location_input?: string | null; orientation_input?: string; current_playlist_id_input?: string | null };
+        Returns: Screen;
+      };      bootstrap_organization: {
         Args: { full_name_input: string; organization_name_input: string };
         Returns: {
           organization_id: string;
@@ -121,3 +124,4 @@ export interface Database {
     CompositeTypes: Record<string, never>;
   };
 }
+
