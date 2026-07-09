@@ -56,7 +56,7 @@ begin
     clean_name,
     nullif(trim(location_input), ''),
     lower(regexp_replace(clean_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || substring(replace(gen_random_uuid()::text, '-', '') from 1 for 8),
-    clean_orientation::public.screen_orientation,
+    clean_orientation,
     current_playlist_id_input
   )
   returning * into screen_record;
@@ -66,3 +66,4 @@ end;
 $$;
 
 grant execute on function public.create_screen(uuid, text, text, text, uuid) to authenticated;
+
