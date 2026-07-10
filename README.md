@@ -72,7 +72,7 @@ Never expose a Supabase service role key in the frontend.
 ## Supabase Setup
 
 1. Create a Supabase project.
-2. Run every migration in `supabase/migrations/` in numeric order (001 through 009).
+2. Run every migration in `supabase/migrations/` in numeric order (001 through 010).
 3. Confirm the `signage-media` bucket exists and is public for the MVP.
 4. Players receive change signals through Supabase Realtime Broadcast (no table needs to be publicly readable). Enable the `pg_cron` extension so migration 009 can schedule `mark_stale_screens_offline()` and pairing cleanup automatically.
 
