@@ -9,8 +9,10 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { createClient } from '@/lib/supabase/client';
 import { useCurrentOrganization } from '@/lib/hooks/useCurrentOrganization';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { createScreen } from '@/lib/services/screens';
 import { getErrorMessage } from '@/lib/utils/errors';
 import type { ScreenOrientation } from '@/types/signage';
 
@@ -18,6 +20,7 @@ export default function NewScreenPage() {
   const router = useRouter();
   const { organization, loading: organizationLoading } = useCurrentOrganization();
   const { t } = useLanguage();
+  const supabase = createClient();
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [orientation, setOrientation] = useState<ScreenOrientation>('landscape');
@@ -31,23 +34,8 @@ export default function NewScreenPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/screens', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organizationId: organization.id,
-          name,
-          location,
-          orientation
-        })
-      });
-
-      const payload = (await response.json()) as { screen?: { id: string }; error?: string };
-      if (!response.ok || !payload.screen) {
-        throw new Error(payload.error || t('screenNew.error'));
-      }
-
-      router.push('/dashboard/screens/' + payload.screen.id);
+      const screen = await createScreen(supabase, organization.id, { name, location, orientation });
+      router.push('/dashboard/screens/' + screen.id);
     } catch (err) {
       setError(getErrorMessage(err, t('screenNew.error')));
     } finally {
