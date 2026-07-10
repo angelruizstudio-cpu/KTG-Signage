@@ -13,6 +13,8 @@ import { ensureInitialOrganization } from "@/lib/services/organizations";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
+const PENDING_ONBOARDING_KEY = 'ktg-signage.pendingOnboarding';
+
 export default function RegisterPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -36,9 +38,21 @@ export default function RegisterPage() {
         options: { data: { full_name: fullName } }
       });
       if (signupError) throw signupError;
-      if (!data.user) throw new Error(t("register.confirmEmailError"));
+      if (!data.user) throw new Error(t('register.confirmEmailError'));
+
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        localStorage.setItem(PENDING_ONBOARDING_KEY, JSON.stringify({ fullName, organizationName }));
+        setError(t('register.confirmEmailError'));
+        return;
+      }
+
       await ensureInitialOrganization(supabase, data.user, fullName, organizationName);
-      router.push("/dashboard");
+      localStorage.removeItem(PENDING_ONBOARDING_KEY);
+      router.push('/dashboard');
       router.refresh();
     } catch (err) {
       setError(getErrorMessage(err, t("register.genericError")));

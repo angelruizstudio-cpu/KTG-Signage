@@ -10,6 +10,9 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { createClient } from "@/lib/supabase/client";
 import { getSupabaseConfigError, isSupabaseConfigured } from "@/lib/supabase/env";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { ensureInitialOrganization } from '@/lib/services/organizations';
+
+const PENDING_ONBOARDING_KEY = 'ktg-signage.pendingOnboarding';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,14 +45,32 @@ export default function LoginPage() {
       error: sessionError
     } = await supabase.auth.getSession();
 
-    setLoading(false);
-
     if (sessionError || !session) {
-      setError(sessionError?.message ?? "Could not persist your session. Please try again.");
+      setLoading(false);
+      setError(sessionError?.message ?? 'Could not persist your session. Please try again.');
       return;
     }
 
-    router.replace("/dashboard");
+    const pendingOnboarding = localStorage.getItem(PENDING_ONBOARDING_KEY);
+    if (pendingOnboarding) {
+      try {
+        const { fullName: pendingFullName, organizationName: pendingOrganizationName } = JSON.parse(pendingOnboarding) as {
+          fullName?: string;
+          organizationName?: string;
+        };
+
+        if (pendingFullName && pendingOrganizationName) {
+          await ensureInitialOrganization(supabase, session.user, pendingFullName, pendingOrganizationName);
+        }
+      } catch {
+        // ignore malformed local state
+      } finally {
+        localStorage.removeItem(PENDING_ONBOARDING_KEY);
+      }
+    }
+
+    setLoading(false);
+    router.replace('/dashboard');
     router.refresh();
   }
 
