@@ -143,16 +143,9 @@ language plpgsql
 as $$
 declare
   code text;
-  raw bytea;
 begin
   loop
-    raw := gen_random_bytes(4);
-    code := 'KTG-' || lpad(((
-      (get_byte(raw, 0)::bigint << 24) |
-      (get_byte(raw, 1)::bigint << 16) |
-      (get_byte(raw, 2)::bigint << 8) |
-      get_byte(raw, 3)::bigint
-    ) % 1000000)::text, 6, '0');
+    code := 'KTG-' || lpad(floor(random() * 1000000)::int::text, 6, '0');
     exit when not exists (
       select 1
       from public.signage_devices sd
@@ -195,7 +188,7 @@ begin
     raise exception 'Too many pairing requests right now. Try again in a few minutes.';
   end if;
 
-  new_device_key := encode(gen_random_bytes(32), 'hex');
+  new_device_key := md5(random()::text || clock_timestamp()::text) || md5(clock_timestamp()::text || random()::text);
   new_pairing_code := public.generate_pairing_code();
 
   insert into public.signage_devices(device_key, pairing_code, user_agent)
@@ -297,7 +290,7 @@ begin
       org_record.id,
       screen_name,
       screen_name,
-      lower(regexp_replace(screen_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || encode(gen_random_bytes(12), 'hex'),
+      lower(regexp_replace(screen_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || substring(md5(screen_name || current_user_id::text || clock_timestamp()::text) from 1 for 24),
       'landscape'
     );
   end loop;

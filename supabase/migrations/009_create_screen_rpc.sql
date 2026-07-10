@@ -55,7 +55,7 @@ begin
     organization_id_input,
     clean_name,
     nullif(trim(location_input), ''),
-    lower(regexp_replace(clean_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || substring(replace(gen_random_uuid()::text, '-', '') from 1 for 8),
+    lower(regexp_replace(clean_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || substring(md5(clean_name || organization_id_input::text || random()::text || clock_timestamp()::text) from 1 for 8),
     clean_orientation,
     current_playlist_id_input
   )
