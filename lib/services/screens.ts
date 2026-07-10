@@ -29,24 +29,13 @@ export async function createScreen(
 ) {
   if (!values.name.trim()) throw new Error('Screen name is required.');
 
-  const slug = values.name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '') || 'screen';
-  const screen_key = slug + '-' + crypto.randomUUID().replace(/-/g, '').slice(0, 8);
-
-  const { data, error } = await supabase
-    .from('screens')
-    .insert({
-      organization_id: organizationId,
-      name: values.name,
-      location: values.location || null,
-      orientation: values.orientation,
-      current_playlist_id: values.current_playlist_id ?? null,
-      screen_key
-    })
-    .select('*')
-    .single();
+  const { data, error } = await supabase.rpc('create_screen', {
+    organization_id_input: organizationId,
+    name_input: values.name,
+    location_input: values.location || null,
+    orientation_input: values.orientation,
+    current_playlist_id_input: values.current_playlist_id ?? null
+  });
   if (error) throw error;
   return data as Screen;
 }
