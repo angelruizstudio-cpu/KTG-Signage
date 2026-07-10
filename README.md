@@ -67,6 +67,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
+The app will not start if either `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_ANON_KEY` is missing.
+
 Never expose a Supabase service role key in the frontend.
 
 ## Supabase Setup
@@ -74,7 +76,7 @@ Never expose a Supabase service role key in the frontend.
 1. Create a Supabase project.
 2. Run every migration in `supabase/migrations/` in numeric order (001 through 010).
 3. Confirm the `signage-media` bucket exists and is public for the MVP.
-4. Players receive change signals through Supabase Realtime Broadcast (no table needs to be publicly readable). Enable the `pg_cron` extension so migration 009 can schedule `mark_stale_screens_offline()` and pairing cleanup automatically.
+4. Players receive change signals through Supabase Realtime Broadcast (no table needs to be publicly readable). Enable the `pg_cron` extension so migration 010 can schedule `mark_stale_screens_offline()` and pairing cleanup automatically.
 
 ## Database and Security
 
@@ -137,7 +139,7 @@ The kiosk player asks the browser to enter fullscreen, hides the cursor, shows n
 - Set production `NEXT_PUBLIC_APP_URL`.
 - Use HTTPS for device player reliability.
 - Keep the anon key public and RLS strict.
-- Migration 009 schedules `mark_stale_screens_offline()` and pairing cleanup with `pg_cron` when the extension is enabled; otherwise schedule them from Supabase cron or an external job.
+- Migration 010 schedules `mark_stale_screens_offline()` and pairing cleanup with `pg_cron` when the extension is enabled; otherwise schedule them from Supabase cron or an external job.
 - Set the organization timezone in Dashboard → Settings so schedules (days and time windows) run on local church time.
 - Public media URLs are used for MVP reliability. Move to signed URLs when per-device auth is implemented.
 
@@ -157,3 +159,6 @@ The kiosk player asks the browser to enter fullscreen, hides the cursor, shows n
 - Device registration with pairing code
 - Multi-location support
 - Templates marketplace
+
+
+
